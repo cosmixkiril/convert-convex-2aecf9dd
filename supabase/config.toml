@@ -1,0 +1,4 @@
+project_id = "vnhtmaczoeozyouaalwr"
+
+[functions.convert-file]
+verify_jwt = false
