@@ -34,6 +34,56 @@ const generateRandomFilename = (extension: string): string => {
   return `Convex-${randomPart}.${extension.toLowerCase()}`;
 };
 
+// Get MIME type for format
+const getMimeType = (format: string): string => {
+  const mimeTypes: Record<string, string> = {
+    // Images
+    PNG: 'image/png',
+    JPG: 'image/jpeg',
+    JPEG: 'image/jpeg',
+    GIF: 'image/gif',
+    WEBP: 'image/webp',
+    BMP: 'image/bmp',
+    ICO: 'image/x-icon',
+    SVG: 'image/svg+xml',
+    TIFF: 'image/tiff',
+    // Video
+    MP4: 'video/mp4',
+    AVI: 'video/x-msvideo',
+    MOV: 'video/quicktime',
+    MKV: 'video/x-matroska',
+    WEBM: 'video/webm',
+    WMV: 'video/x-ms-wmv',
+    FLV: 'video/x-flv',
+    // Audio
+    MP3: 'audio/mpeg',
+    WAV: 'audio/wav',
+    OGG: 'audio/ogg',
+    FLAC: 'audio/flac',
+    AAC: 'audio/aac',
+    WMA: 'audio/x-ms-wma',
+    M4A: 'audio/mp4',
+    // Documents
+    PDF: 'application/pdf',
+    DOCX: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    DOC: 'application/msword',
+    TXT: 'text/plain',
+    RTF: 'application/rtf',
+    ODT: 'application/vnd.oasis.opendocument.text',
+    XLSX: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    XLS: 'application/vnd.ms-excel',
+    PPTX: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    PPT: 'application/vnd.ms-powerpoint',
+    // Archives
+    ZIP: 'application/zip',
+    RAR: 'application/vnd.rar',
+    '7Z': 'application/x-7z-compressed',
+    TAR: 'application/x-tar',
+    GZ: 'application/gzip',
+  };
+  return mimeTypes[format.toUpperCase()] || 'application/octet-stream';
+};
+
 const FileUploader: React.FC = () => {
   const { t } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
@@ -106,10 +156,11 @@ const FileUploader: React.FC = () => {
 
     // Create blob URL from file for download (simulation)
     // In real app, this would be the converted file from API
-    const blob = new Blob([await file.arrayBuffer()], { type: file.type });
+    const mimeType = getMimeType(outputFormat);
+    const blob = new Blob([await file!.arrayBuffer()], { type: mimeType });
     const url = URL.createObjectURL(blob);
     
-    // Generate random filename
+    // Generate random filename with only the target format extension
     const filename = generateRandomFilename(outputFormat);
     
     setStatus('success');
