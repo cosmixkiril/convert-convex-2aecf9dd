@@ -24,6 +24,16 @@ const getFileCategory = (extension: string): keyof typeof formatCategories | nul
   return null;
 };
 
+// Generate random filename like "Convex-AbCdEf"
+const generateRandomFilename = (extension: string): string => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  let randomPart = '';
+  for (let i = 0; i < 6; i++) {
+    randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `Convex-${randomPart}.${extension.toLowerCase()}`;
+};
+
 const FileUploader: React.FC = () => {
   const { t } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
@@ -32,6 +42,7 @@ const FileUploader: React.FC = () => {
   const [status, setStatus] = useState<'idle' | 'converting' | 'success' | 'error'>('idle');
   const [progress, setProgress] = useState(0);
   const [convertedUrl, setConvertedUrl] = useState<string | null>(null);
+  const [convertedFilename, setConvertedFilename] = useState<string>('');
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -93,9 +104,17 @@ const FileUploader: React.FC = () => {
       setProgress(i);
     }
 
-    // Simulate success (in real app, this would call the API)
+    // Create blob URL from file for download (simulation)
+    // In real app, this would be the converted file from API
+    const blob = new Blob([await file.arrayBuffer()], { type: file.type });
+    const url = URL.createObjectURL(blob);
+    
+    // Generate random filename
+    const filename = generateRandomFilename(outputFormat);
+    
     setStatus('success');
-    setConvertedUrl('#'); // Placeholder URL
+    setConvertedUrl(url);
+    setConvertedFilename(filename);
     toast.success(t('converter.success'));
   };
 
@@ -114,11 +133,16 @@ const FileUploader: React.FC = () => {
   };
 
   const handleReset = () => {
+    // Clean up blob URL to prevent memory leak
+    if (convertedUrl) {
+      URL.revokeObjectURL(convertedUrl);
+    }
     setFile(null);
     setOutputFormat('');
     setStatus('idle');
     setProgress(0);
     setConvertedUrl(null);
+    setConvertedFilename('');
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -232,7 +256,7 @@ const FileUploader: React.FC = () => {
               </div>
               <div className="flex gap-3">
                 <Button asChild className="flex-1 btn-gradient">
-                  <a href={convertedUrl || '#'} download>
+                  <a href={convertedUrl || '#'} download={convertedFilename}>
                     <Download className="w-4 h-4 mr-2" />
                     {t('converter.download')}
                   </a>
