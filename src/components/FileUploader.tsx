@@ -254,12 +254,25 @@ const FileUploader: React.FC = () => {
                 <Check className="w-5 h-5" />
                 <span className="font-medium">{t('converter.success')}</span>
               </div>
+              <p className="text-sm text-muted-foreground">
+                {convertedFilename}
+              </p>
               <div className="flex gap-3">
-                <Button asChild className="flex-1 btn-gradient">
-                  <a href={convertedUrl || '#'} download={convertedFilename}>
-                    <Download className="w-4 h-4 mr-2" />
-                    {t('converter.download')}
-                  </a>
+                <Button 
+                  className="flex-1 btn-gradient"
+                  onClick={() => {
+                    if (convertedUrl) {
+                      const link = document.createElement('a');
+                      link.href = convertedUrl;
+                      link.download = convertedFilename;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  {t('converter.download')}
                 </Button>
                 <Button variant="outline" onClick={handleReset}>
                   {t('converter.newFile')}
