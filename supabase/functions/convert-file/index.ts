@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// MIME type mappings
+// MIME type mappings (complete list)
 const mimeTypes: Record<string, string> = {
   // Images
   'png': 'image/png',
@@ -17,6 +17,8 @@ const mimeTypes: Record<string, string> = {
   'ico': 'image/x-icon',
   'svg': 'image/svg+xml',
   'tiff': 'image/tiff',
+  'heic': 'image/heic',
+  'avif': 'image/avif',
   // Video
   'mp4': 'video/mp4',
   'avi': 'video/x-msvideo',
@@ -25,6 +27,8 @@ const mimeTypes: Record<string, string> = {
   'webm': 'video/webm',
   'wmv': 'video/x-ms-wmv',
   'flv': 'video/x-flv',
+  'm4v': 'video/x-m4v',
+  '3gp': 'video/3gpp',
   // Audio
   'mp3': 'audio/mpeg',
   'wav': 'audio/wav',
@@ -33,6 +37,8 @@ const mimeTypes: Record<string, string> = {
   'aac': 'audio/aac',
   'wma': 'audio/x-ms-wma',
   'm4a': 'audio/mp4',
+  'aiff': 'audio/aiff',
+  'opus': 'audio/opus',
   // Documents
   'pdf': 'application/pdf',
   'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -44,12 +50,16 @@ const mimeTypes: Record<string, string> = {
   'xls': 'application/vnd.ms-excel',
   'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   'ppt': 'application/vnd.ms-powerpoint',
+  'csv': 'text/csv',
+  'html': 'text/html',
   // Archives
   'zip': 'application/zip',
   'rar': 'application/vnd.rar',
   '7z': 'application/x-7z-compressed',
   'tar': 'application/x-tar',
   'gz': 'application/gzip',
+  'bz2': 'application/x-bzip2',
+  'xz': 'application/x-xz',
 };
 
 // Image formats that can be converted using canvas

@@ -9,31 +9,31 @@ const FormatGrid: React.FC = () => {
     {
       icon: FileImage,
       name: 'Images',
-      formats: ['PNG', 'JPG', 'GIF', 'WEBP', 'BMP', 'SVG', 'ICO', 'TIFF'],
+      formats: ['PNG', 'JPG', 'GIF', 'WEBP', 'BMP', 'SVG', 'ICO', 'TIFF', 'HEIC', 'AVIF'],
       color: 'from-pink-500 to-rose-500',
     },
     {
       icon: FileVideo,
       name: 'Video',
-      formats: ['MP4', 'AVI', 'MOV', 'MKV', 'WEBM', 'WMV', 'FLV'],
+      formats: ['MP4', 'AVI', 'MOV', 'MKV', 'WEBM', 'WMV', 'FLV', 'M4V', '3GP'],
       color: 'from-violet-500 to-purple-500',
     },
     {
       icon: FileAudio,
       name: 'Audio',
-      formats: ['MP3', 'WAV', 'OGG', 'FLAC', 'AAC', 'WMA', 'M4A'],
+      formats: ['MP3', 'WAV', 'OGG', 'FLAC', 'AAC', 'WMA', 'M4A', 'AIFF', 'OPUS'],
       color: 'from-cyan-500 to-blue-500',
     },
     {
       icon: FileText,
       name: 'Documents',
-      formats: ['PDF', 'DOCX', 'TXT', 'RTF', 'ODT', 'XLSX', 'PPTX'],
+      formats: ['PDF', 'DOCX', 'TXT', 'RTF', 'ODT', 'XLSX', 'PPTX', 'CSV', 'HTML'],
       color: 'from-amber-500 to-orange-500',
     },
     {
       icon: Archive,
       name: 'Archives',
-      formats: ['ZIP', 'RAR', '7Z', 'TAR', 'GZ'],
+      formats: ['ZIP', 'RAR', '7Z', 'TAR', 'GZ', 'BZ2', 'XZ'],
       color: 'from-emerald-500 to-green-500',
     },
   ];

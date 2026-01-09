@@ -4,15 +4,14 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
-// Format categories
+// Format categories (GIF is in image only, video has separate animated format)
 const formatCategories = {
-  image: ['PNG', 'JPG', 'JPEG', 'GIF', 'WEBP', 'BMP', 'ICO', 'SVG', 'TIFF'],
-  video: ['MP4', 'AVI', 'MOV', 'MKV', 'WEBM', 'GIF', 'WMV', 'FLV'],
-  audio: ['MP3', 'WAV', 'OGG', 'FLAC', 'AAC', 'WMA', 'M4A'],
-  document: ['PDF', 'DOCX', 'DOC', 'TXT', 'RTF', 'ODT', 'XLSX', 'XLS', 'PPTX', 'PPT'],
-  archive: ['ZIP', 'RAR', '7Z', 'TAR', 'GZ'],
+  image: ['PNG', 'JPG', 'JPEG', 'GIF', 'WEBP', 'BMP', 'ICO', 'SVG', 'TIFF', 'HEIC', 'AVIF'],
+  video: ['MP4', 'AVI', 'MOV', 'MKV', 'WEBM', 'WMV', 'FLV', 'M4V', '3GP'],
+  audio: ['MP3', 'WAV', 'OGG', 'FLAC', 'AAC', 'WMA', 'M4A', 'AIFF', 'OPUS'],
+  document: ['PDF', 'DOCX', 'DOC', 'TXT', 'RTF', 'ODT', 'XLSX', 'XLS', 'PPTX', 'PPT', 'CSV', 'HTML'],
+  archive: ['ZIP', 'RAR', '7Z', 'TAR', 'GZ', 'BZ2', 'XZ'],
 };
 
 const getFileCategory = (extension: string): keyof typeof formatCategories | null => {
@@ -48,6 +47,8 @@ const getMimeType = (format: string): string => {
     ICO: 'image/x-icon',
     SVG: 'image/svg+xml',
     TIFF: 'image/tiff',
+    HEIC: 'image/heic',
+    AVIF: 'image/avif',
     // Video
     MP4: 'video/mp4',
     AVI: 'video/x-msvideo',
@@ -56,6 +57,8 @@ const getMimeType = (format: string): string => {
     WEBM: 'video/webm',
     WMV: 'video/x-ms-wmv',
     FLV: 'video/x-flv',
+    M4V: 'video/x-m4v',
+    '3GP': 'video/3gpp',
     // Audio
     MP3: 'audio/mpeg',
     WAV: 'audio/wav',
@@ -64,6 +67,8 @@ const getMimeType = (format: string): string => {
     AAC: 'audio/aac',
     WMA: 'audio/x-ms-wma',
     M4A: 'audio/mp4',
+    AIFF: 'audio/aiff',
+    OPUS: 'audio/opus',
     // Documents
     PDF: 'application/pdf',
     DOCX: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -75,12 +80,16 @@ const getMimeType = (format: string): string => {
     XLS: 'application/vnd.ms-excel',
     PPTX: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     PPT: 'application/vnd.ms-powerpoint',
+    CSV: 'text/csv',
+    HTML: 'text/html',
     // Archives
     ZIP: 'application/zip',
     RAR: 'application/vnd.rar',
     '7Z': 'application/x-7z-compressed',
     TAR: 'application/x-tar',
     GZ: 'application/gzip',
+    BZ2: 'application/x-bzip2',
+    XZ: 'application/x-xz',
   };
   return mimeTypes[format.toUpperCase()] || 'application/octet-stream';
 };
