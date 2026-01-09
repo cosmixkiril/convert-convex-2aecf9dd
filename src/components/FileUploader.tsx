@@ -1,0 +1,270 @@
+import React, { useCallback, useState } from 'react';
+import { Upload, File, X, Check, AlertCircle, Download, Loader2 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
+
+// Format categories
+const formatCategories = {
+  image: ['PNG', 'JPG', 'JPEG', 'GIF', 'WEBP', 'BMP', 'ICO', 'SVG', 'TIFF'],
+  video: ['MP4', 'AVI', 'MOV', 'MKV', 'WEBM', 'GIF', 'WMV', 'FLV'],
+  audio: ['MP3', 'WAV', 'OGG', 'FLAC', 'AAC', 'WMA', 'M4A'],
+  document: ['PDF', 'DOCX', 'DOC', 'TXT', 'RTF', 'ODT', 'XLSX', 'XLS', 'PPTX', 'PPT'],
+  archive: ['ZIP', 'RAR', '7Z', 'TAR', 'GZ'],
+};
+
+const getFileCategory = (extension: string): keyof typeof formatCategories | null => {
+  const ext = extension.toUpperCase();
+  for (const [category, formats] of Object.entries(formatCategories)) {
+    if (formats.includes(ext)) {
+      return category as keyof typeof formatCategories;
+    }
+  }
+  return null;
+};
+
+const FileUploader: React.FC = () => {
+  const { t } = useLanguage();
+  const [isDragging, setIsDragging] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [outputFormat, setOutputFormat] = useState<string>('');
+  const [status, setStatus] = useState<'idle' | 'converting' | 'success' | 'error'>('idle');
+  const [progress, setProgress] = useState(0);
+  const [convertedUrl, setConvertedUrl] = useState<string | null>(null);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile) {
+      handleFile(droppedFile);
+    }
+  }, []);
+
+  const handleFile = (selectedFile: File) => {
+    if (selectedFile.size > 100 * 1024 * 1024) {
+      toast.error('File size exceeds 100MB limit');
+      return;
+    }
+    setFile(selectedFile);
+    setOutputFormat('');
+    setStatus('idle');
+    setProgress(0);
+    setConvertedUrl(null);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      handleFile(selectedFile);
+    }
+  };
+
+  const getFileExtension = (filename: string): string => {
+    return filename.split('.').pop()?.toUpperCase() || '';
+  };
+
+  const getAvailableFormats = (): string[] => {
+    if (!file) return [];
+    const ext = getFileExtension(file.name);
+    const category = getFileCategory(ext);
+    if (!category) return [];
+    return formatCategories[category].filter(f => f !== ext);
+  };
+
+  const simulateConversion = async () => {
+    setStatus('converting');
+    setProgress(0);
+
+    // Simulate conversion progress
+    for (let i = 0; i <= 100; i += 10) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      setProgress(i);
+    }
+
+    // Simulate success (in real app, this would call the API)
+    setStatus('success');
+    setConvertedUrl('#'); // Placeholder URL
+    toast.success(t('converter.success'));
+  };
+
+  const handleConvert = async () => {
+    if (!file || !outputFormat) {
+      toast.error('Please select a file and output format');
+      return;
+    }
+    
+    try {
+      await simulateConversion();
+    } catch {
+      setStatus('error');
+      toast.error(t('converter.error'));
+    }
+  };
+
+  const handleReset = () => {
+    setFile(null);
+    setOutputFormat('');
+    setStatus('idle');
+    setProgress(0);
+    setConvertedUrl(null);
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  return (
+    <div className="w-full max-w-2xl mx-auto">
+      {!file ? (
+        /* Upload Zone */
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`upload-zone ${isDragging ? 'active' : ''}`}
+        >
+          <input
+            type="file"
+            onChange={handleFileSelect}
+            className="hidden"
+            id="file-input"
+          />
+          <label htmlFor="file-input" className="cursor-pointer flex flex-col items-center gap-4">
+            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center animate-float">
+              <Upload className="w-10 h-10 text-primary" />
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-semibold text-foreground">{t('upload.dragDrop')}</p>
+              <p className="text-sm text-muted-foreground mt-1">{t('upload.or')}</p>
+            </div>
+            <Button variant="outline" className="mt-2">
+              {t('upload.browse')}
+            </Button>
+            <p className="text-xs text-muted-foreground mt-4">{t('upload.maxSize')}</p>
+          </label>
+        </div>
+      ) : (
+        /* File Selected State */
+        <div className="glass-card p-6 animate-scale-in">
+          {/* File Info */}
+          <div className="flex items-start gap-4 mb-6">
+            <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <File className="w-7 h-7 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium truncate">{file.name}</p>
+              <p className="text-sm text-muted-foreground">
+                {formatFileSize(file.size)} • {getFileExtension(file.name)}
+              </p>
+            </div>
+            {status === 'idle' && (
+              <Button variant="ghost" size="icon" onClick={handleReset}>
+                <X className="w-5 h-5" />
+              </Button>
+            )}
+          </div>
+
+          {/* Format Selection */}
+          {status === 'idle' && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <label className="text-sm font-medium mb-2 block">{t('converter.to')}</label>
+                  <Select value={outputFormat} onValueChange={setOutputFormat}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('converter.selectFormat')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableFormats().map(format => (
+                        <SelectItem key={format} value={format}>
+                          {format}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleConvert} 
+                className="w-full btn-gradient"
+                disabled={!outputFormat}
+              >
+                {t('converter.convert')}
+              </Button>
+            </div>
+          )}
+
+          {/* Converting State */}
+          {status === 'converting' && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                <span className="font-medium">{t('converter.converting')}</span>
+                <span className="text-muted-foreground ml-auto">{progress}%</span>
+              </div>
+              <div className="progress-bar">
+                <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
+              </div>
+            </div>
+          )}
+
+          {/* Success State */}
+          {status === 'success' && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-green-500">
+                <Check className="w-5 h-5" />
+                <span className="font-medium">{t('converter.success')}</span>
+              </div>
+              <div className="flex gap-3">
+                <Button asChild className="flex-1 btn-gradient">
+                  <a href={convertedUrl || '#'} download>
+                    <Download className="w-4 h-4 mr-2" />
+                    {t('converter.download')}
+                  </a>
+                </Button>
+                <Button variant="outline" onClick={handleReset}>
+                  {t('converter.newFile')}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {status === 'error' && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-destructive">
+                <AlertCircle className="w-5 h-5" />
+                <span className="font-medium">{t('converter.error')}</span>
+              </div>
+              <div className="flex gap-3">
+                <Button onClick={handleConvert} className="flex-1">
+                  {t('converter.tryAgain')}
+                </Button>
+                <Button variant="outline" onClick={handleReset}>
+                  {t('converter.newFile')}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default FileUploader;
