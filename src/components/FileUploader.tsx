@@ -4,6 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 // Format categories
 const formatCategories = {
@@ -144,29 +145,56 @@ const FileUploader: React.FC = () => {
     return formatCategories[category].filter(f => f !== ext);
   };
 
-  const simulateConversion = async () => {
+  const convertFile = async () => {
+    if (!file || !outputFormat) return;
+    
     setStatus('converting');
     setProgress(0);
 
-    // Simulate conversion progress
-    for (let i = 0; i <= 100; i += 10) {
-      await new Promise(resolve => setTimeout(resolve, 200));
-      setProgress(i);
-    }
+    try {
+      // Create form data for upload
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('targetFormat', outputFormat);
 
-    // Create blob URL from file for download (simulation)
-    // In real app, this would be the converted file from API
-    const mimeType = getMimeType(outputFormat);
-    const blob = new Blob([await file!.arrayBuffer()], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    
-    // Generate random filename with only the target format extension
-    const filename = generateRandomFilename(outputFormat);
-    
-    setStatus('success');
-    setConvertedUrl(url);
-    setConvertedFilename(filename);
-    toast.success(t('converter.success'));
+      // Simulate progress while waiting for response
+      const progressInterval = setInterval(() => {
+        setProgress(prev => Math.min(prev + 10, 90));
+      }, 300);
+
+      // Call the edge function
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/convert-file`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      clearInterval(progressInterval);
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Conversion failed');
+      }
+
+      // Get filename from header
+      const filename = response.headers.get('X-Filename') || generateRandomFilename(outputFormat);
+      
+      // Get the blob and create download URL
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      setProgress(100);
+      setStatus('success');
+      setConvertedUrl(url);
+      setConvertedFilename(filename);
+      toast.success(t('converter.success'));
+    } catch (error) {
+      console.error('Conversion error:', error);
+      setStatus('error');
+      toast.error(error instanceof Error ? error.message : t('converter.error'));
+    }
   };
 
   const handleConvert = async () => {
@@ -176,7 +204,7 @@ const FileUploader: React.FC = () => {
     }
     
     try {
-      await simulateConversion();
+      await convertFile();
     } catch {
       setStatus('error');
       toast.error(t('converter.error'));
